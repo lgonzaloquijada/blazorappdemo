@@ -16,6 +16,10 @@
     [Parameter]
     public string? currentCountParam { get; set; }
 
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public string? CounterFromQuery { get; set; }
+
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         Logger.LogInformation("OnParametersSetAsync.");
@@ -38,7 +42,8 @@
 
     protected override void OnInitialized()
     {
-        currentCount = int.Parse(currentCountParam ?? "0");
+        //currentCount = int.Parse(currentCountParam ?? "0");
+        currentCount = int.Parse(CounterFromQuery ?? "0");
         Logger.LogInformation("OnInitialized.");
     }
 
