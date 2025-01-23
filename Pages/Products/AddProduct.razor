@@ -1,0 +1,57 @@
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using blazorappdemo.Models
+@using blazorappdemo.Services
+
+@page "/addproduct"
+@inject IProductService ProductService
+@inject ICategoryService CategoryService
+@inject NavigationManager NavigationManager
+
+<h3>Add Product</h3>
+
+<PageTitle>Add Product</PageTitle>
+
+<ModuleTitle Title="Add Product" />
+
+<button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/product"))">Products</button>
+<EditForm Model="@product">
+    <div class="row">
+        <div class="col-8 form-group">
+            <label for="title" class="col-form-label">Title</label>
+            <InputText id="title" class="form-control" @bind-Value="product.Title" required />
+        </div>
+
+        <div class="col-4 form-group">
+            <label for="price" class="col-form-label">Price</label>
+            <InputNumber id="price" class="form-control" @bind-Value="product.Price" required />
+        </div>
+
+        <div class="col-12 form-group">
+            <label for="description" class="col-form-label">Description</label>
+            <InputTextArea id="description" class="form-control" @bind-Value="product.Description" required />
+        </div>
+
+        <div class="col-12 form-group">
+            <label for="category" class="col-form-label">Category</label>
+            <InputSelect id="category" class="form-control" @bind-Value="product.CategoryId" required>
+                <option value="">Select a category</option>
+                @foreach (var category in categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </InputSelect>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private Product product = new Product();
+    private List<Category> categories = new List<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await CategoryService.GetCategories().ContinueWith(x => x?.Result?.ToList()) ?? [];
+    }
+}
