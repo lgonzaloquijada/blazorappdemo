@@ -1,0 +1,56 @@
+@page "/products"
+@using blazorappdemo.Models
+@using blazorappdemo.Services
+@inject ILogger<Products> logger;
+@inject IProductService productService;
+
+<PageTitle>Products</PageTitle>
+
+<ModuleTitle Title="Products" />
+
+@if (products.Count() > 0)
+{
+    <div class="products-container">
+        @foreach (var product in products)
+        {
+            <div class="card">
+                <img src="@product.Images.First()" class="card-img-top" alt="@product.Title" width="270" height="210" />
+                <div class="card-body">
+                    <h4 class="card-title"><b>@product.Title</b></h4>
+                    <p class="card-text">@product.Description</p>
+                    <p class="card-text"><b>Price: @product.Price.ToString("C")</b></p>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No products found.</p>
+}
+
+@code {
+    private IEnumerable<Product> products = [];
+
+    private async Task<IEnumerable<Product>> GetProducts()
+    {
+        return await productService.GetProducts() ?? [];
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        logger.LogInformation("OnInitializedAsync.");
+
+        products = await GetProducts();
+    }
+
+    protected override void OnInitialized()
+    {
+        logger.LogInformation("OnInitialized.");
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        logger.LogInformation("OnAfterRender.");
+    }
+}

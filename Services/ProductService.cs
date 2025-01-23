@@ -4,27 +4,61 @@ using blazorappdemo.Models;
 
 namespace blazorappdemo.Services;
 
-public class ProductService
+public class ProductService : IProductService
 {
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _options;
 
-    public ProductService(HttpClient httpClient, JsonSerializerOptions options)
+    public ProductService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _options = options;
+        _options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     }
 
     public async Task<IEnumerable<Product>?> GetProducts()
     {
         var response = await _httpClient.GetAsync("products");
-        return await JsonSerializer.DeserializeAsync<IEnumerable<Product>>(await response.Content.ReadAsStreamAsync());
+        var content = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new ApplicationException(content);
+        }
+
+        var json = JsonSerializer.Deserialize<IEnumerable<Product>>(content, _options);
+        json = json?.Select(p =>
+        {
+            if (p.Images?.Length > 0)
+            {
+                p.Images = [.. p.Images
+                    .Where(img => img != null)
+                    .Select(img =>
+                    {
+                        try
+                        {
+                            var cleanedImg = img.Trim('[', ']', '\"');
+                            return cleanedImg;
+                        }
+                        catch
+                        {
+                            return string.Empty;
+                        }
+                    })];
+            }
+            return p;
+        });
+        return json;
     }
 
     public async Task<Product?> GetProduct(int id)
     {
         var response = await _httpClient.GetAsync($"products/{id}");
-        return await JsonSerializer.DeserializeAsync<Product>(await response.Content.ReadAsStreamAsync());
+        var content = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new ApplicationException(content);
+        }
+
+        return JsonSerializer.Deserialize<Product>(content, _options);
     }
 
     public async Task AddProduct(Product product)
