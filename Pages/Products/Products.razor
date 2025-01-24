@@ -4,6 +4,7 @@
 @inject ILogger<Products> logger;
 @inject IProductService productService;
 @inject NavigationManager NavigationManager;
+@inject IJSRuntime JSRuntime;
 
 <PageTitle>Products</PageTitle>
 
@@ -22,6 +23,9 @@
                     <h4 class="card-title"><b>@product.Title</b></h4>
                     <p class="card-text">@product.Description</p>
                     <p class="card-text"><b>Price: @product.Price.ToString("C")</b></p>
+                    <button title="Delete" class="btn btn-danger btn-delete" @onclick="@(() => DeleteProduct(product))">
+                        <span class="bi bi-trash"></span>
+                    </button>
                 </div>
             </div>
         }
@@ -55,5 +59,16 @@ else
     protected override void OnAfterRender(bool firstRender)
     {
         logger.LogInformation("OnAfterRender.");
+    }
+
+    private async Task DeleteProduct(Product product)
+    {
+        var result = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {product.Title}?");
+
+        if (result)
+        {
+            await productService.DeleteProduct(product.Id);
+            products = await GetProducts();
+        }
     }
 }
