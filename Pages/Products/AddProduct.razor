@@ -15,8 +15,8 @@
 
 <ModuleTitle Title="Add Product" />
 
-<button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/product"))">Products</button>
-<EditForm Model="@product">
+<button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/products"))">Products</button>
+<EditForm Model="@product" OnSubmit="@Save">
     <div class="row">
         <div class="col-8 form-group">
             <label for="title" class="col-form-label">Title</label>
@@ -43,15 +43,31 @@
                 }
             </InputSelect>
         </div>
+
+        <div class="col-12 form-group">
+            <label for="image" class="col-form-label">ImageUrl</label>
+            <InputText id="image" class="form-control" @bind-Value="product.Image" required />
+        </div>
+
+        <div class="col form-group">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
     </div>
 </EditForm>
 
 @code {
     private Product product = new Product();
-    private List<Category> categories = new List<Category>();
+    private List<Category> categories = [];
 
     protected override async Task OnInitializedAsync()
     {
         categories = await CategoryService.GetCategories().ContinueWith(x => x?.Result?.ToList()) ?? [];
+    }
+
+    private async Task Save()
+    {
+        product.Images = new string[1] { product.Image ?? "" };
+        await ProductService.AddProduct(product);
+        NavigationManager.NavigateTo("/products");
     }
 }
