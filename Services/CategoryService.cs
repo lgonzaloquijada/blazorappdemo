@@ -24,7 +24,8 @@ public class CategoryService : ICategoryService
             throw new ApplicationException(content);
         }
 
-        return JsonSerializer.Deserialize<IEnumerable<Category>>(content, _options);
+        var categories = JsonSerializer.Deserialize<IEnumerable<Category>>(content, _options);
+        return categories;
     }
 
     public async Task<Category?> GetCategory(int id)

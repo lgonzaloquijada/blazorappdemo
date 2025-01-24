@@ -24,12 +24,13 @@ public class ProductService : IProductService
             throw new ApplicationException(content);
         }
 
-        var json = JsonSerializer.Deserialize<IEnumerable<Product>>(content, _options);
-        json = json?.Select(p =>
+        var products = JsonSerializer.Deserialize<IEnumerable<Product>>(content, _options) ?? [];
+        foreach (var p in products)
         {
+            p.CategoryId = p.Category?.Id ?? 0;
             if (p.Images?.Length > 0)
             {
-                p.Images = [.. p.Images
+                p.Images = p.Images
                     .Where(img => img != null)
                     .Select(img =>
                     {
@@ -42,11 +43,11 @@ public class ProductService : IProductService
                         {
                             return string.Empty;
                         }
-                    })];
+                    }).ToArray();
             }
-            return p;
-        });
-        return json;
+            p.Image = p.Images?[0];
+        }
+        return products;
     }
 
     public async Task<Product?> GetProduct(int id)
@@ -58,7 +59,30 @@ public class ProductService : IProductService
             throw new ApplicationException(content);
         }
 
-        return JsonSerializer.Deserialize<Product>(content, _options);
+        var product = JsonSerializer.Deserialize<Product>(content, _options);
+        if (product != null)
+        {
+            product.CategoryId = product.Category?.Id ?? 0;
+            if (product.Images?.Length > 0)
+            {
+                product.Images = product.Images
+                    .Where(img => img != null)
+                    .Select(img =>
+                    {
+                        try
+                        {
+                            var cleanedImg = img.Trim('[', ']', '\"');
+                            return cleanedImg;
+                        }
+                        catch
+                        {
+                            return string.Empty;
+                        }
+                    }).ToArray();
+            }
+            product.Image = product.Images?[0];
+        }
+        return product;
     }
 
     public async Task AddProduct(Product product)
