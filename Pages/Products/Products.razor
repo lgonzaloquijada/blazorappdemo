@@ -1,10 +1,11 @@
 @page "/products"
 @using blazorappdemo.Models
 @using blazorappdemo.Services
-@inject ILogger<Products> logger;
-@inject IProductService productService;
-@inject NavigationManager NavigationManager;
-@inject IJSRuntime JSRuntime;
+@inject ILogger<Products> logger
+@inject IProductService productService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject IToastService toastService
 
 <PageTitle>Products</PageTitle>
 
@@ -72,6 +73,7 @@ else
         if (result)
         {
             await productService.DeleteProduct(product.Id);
+            toastService.ShowSuccess($"Product {product.Title} deleted successfully.");
             products = await GetProducts();
         }
     }
